@@ -103,3 +103,4 @@ def test_fastapi_select_and_limits():
         assert client.post("/api/select", data="x" * (1024 * 1024 + 1)).status_code == 413
         assert client.get("/").status_code == 200
         assert "selectExemplars" in client.get("/selector.js").text
+        assert "runSelection" in client.get("/app.js").text
