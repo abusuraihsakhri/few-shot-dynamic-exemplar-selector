@@ -113,3 +113,11 @@ def test_nonfinite_audit_metric_rejected():
         SystemTaskPayload(task_id='T', target_identifier='K', primary_metric=float('nan'))
     with pytest.raises(ValidationError):
         SystemTaskPayload(task_id='T', target_identifier='K', primary_metric=2.0, secondary_metric=float('inf'))
+
+
+def test_legacy_mock_does_not_claim_unperformed_analysis():
+    from agents.llm_factory import LLMFactory
+    response = LLMFactory.create('mock').invoke('What does the system do?')
+    assert 'No language model or clinical verification was performed' in response
+    with pytest.raises(ValueError, match='not implemented'):
+        LLMFactory.create('openai')
