@@ -104,3 +104,12 @@ def test_fastapi_select_and_limits():
         assert client.get("/").status_code == 200
         assert "selectExemplars" in client.get("/selector.js").text
         assert "runSelection" in client.get("/app.js").text
+
+
+def test_nonfinite_audit_metric_rejected():
+    from pydantic import ValidationError
+    from agents.models import SystemTaskPayload
+    with pytest.raises(ValidationError):
+        SystemTaskPayload(task_id='T', target_identifier='K', primary_metric=float('nan'))
+    with pytest.raises(ValidationError):
+        SystemTaskPayload(task_id='T', target_identifier='K', primary_metric=2.0, secondary_metric=float('inf'))
