@@ -1,27 +1,40 @@
 [build-system]
-requires = ["setuptools>=61.0"]
+requires = ["setuptools>=68"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "few-shot-dynamic-exemplar-selector"
-version = "2.0.0"
-description = "ExemplarSelector: Semantic Distance & Diversity Few-Shot Prompt Builder"
+version = "2.1.0"
+description = "Local TF-IDF/MMR few-shot example selection with optional audit and API tools"
 readme = "README.md"
-authors = [{ name = "Dr. Abu Suraih Sakhri", email = "abusuraih@example.com" }]
+requires-python = ">=3.9"
 license = { text = "MIT" }
+authors = [{ name = "Dr. Abu Suraih Sakhri" }]
 classifiers = [
     "Programming Language :: Python :: 3",
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
-    "Topic :: Security/Cryptography",
     "Topic :: Scientific/Engineering :: Artificial Intelligence",
 ]
-requires-python = ">=3.9"
-dependencies = []
+dependencies = ["pydantic>=2,<3"]
+
+[project.optional-dependencies]
+api = ["fastapi>=0.110,<1", "uvicorn>=0.29,<1"]
+test = ["pytest>=8,<10", "httpx>=0.27,<1"]
 
 [project.scripts]
 few-shot-dynamic-exemplar-selector = "exemplar_selector.cli:main"
+few-shot-audit = "cli:main"
 
 [project.urls]
-Homepage = "https://github.com/abusuraihsakhri/few-shot-dynamic-exemplar-selector"
-Repository = "https://github.com/abusuraihsakhri/few-shot-dynamic-exemplar-selector.git"
+Repository = "https://github.com/abusuraihsakhri/few-shot-dynamic-exemplar-selector"
+
+[tool.setuptools]
+packages = ["agents", "exemplar_selector", "web"]
+py-modules = ["cli", "enrichment", "simulator", "exemplar_selector_app"]
+
+[tool.setuptools.package-data]
+web = ["*.html", "*.js"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

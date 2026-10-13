@@ -1,236 +1,100 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Few Shot Dynamic Exemplar Selector — Operations Console</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --bg: #090d16;
-            --card: #111827;
-            --border: #1f293d;
-            --accent: #3b82f6;
-            --accent-glow: rgba(59, 130, 246, 0.25);
-            --text: #f3f4f6;
-            --text-muted: #9ca3af;
-            --danger: #ef4444;
-            --warning: #f59e0b;
-            --success: #10b981;
-        }
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body {
-            font-family: 'Inter', sans-serif;
-            background: var(--bg);
-            color: var(--text);
-            padding: 2rem;
-            min-height: 100vh;
-        }
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid var(--border);
-            padding-bottom: 1.5rem;
-            margin-bottom: 2rem;
-        }
-        .header-title h1 { font-size: 1.6rem; font-weight: 700; color: #fff; }
-        .header-title p { color: var(--text-muted); font-size: 0.9rem; margin-top: 0.25rem; }
-        .badge {
-            display: inline-block;
-            padding: 0.3rem 0.8rem;
-            border-radius: 9999px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            background: var(--accent-glow);
-            color: var(--accent);
-            border: 1px solid var(--accent);
-        }
-        .grid {
-            display: grid;
-            grid-template-columns: 1fr 1.2fr;
-            gap: 1.5rem;
-        }
-        .card {
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 1.5rem;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
-        }
-        .card h2 {
-            font-size: 1.1rem;
-            font-weight: 600;
-            margin-bottom: 1rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-        .form-group { margin-bottom: 1rem; }
-        label { display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.4rem; }
-        input, select, textarea {
-            width: 100%;
-            padding: 0.65rem 0.9rem;
-            background: #0d1322;
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            color: #fff;
-            font-family: inherit;
-            font-size: 0.9rem;
-        }
-        input:focus, textarea:focus { outline: none; border-color: var(--accent); }
-        .btn {
-            background: var(--accent);
-            color: #fff;
-            border: none;
-            padding: 0.7rem 1.4rem;
-            border-radius: 6px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: 0.2s;
-            width: 100%;
-        }
-        .btn:hover { background: #2563eb; }
-        .terminal {
-            background: #060911;
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 1rem;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.85rem;
-            color: #10b981;
-            height: 380px;
-            overflow-y: auto;
-            white-space: pre-wrap;
-        }
-        .metrics-bar {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 1rem;
-            margin-bottom: 1.5rem;
-        }
-        .metric-box {
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 1rem;
-            text-align: center;
-        }
-        .metric-val { font-size: 1.4rem; font-weight: 700; color: #fff; margin-top: 0.25rem; }
-        .metric-label { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; }
-    </style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; object-src 'none'; base-uri 'none'; form-action 'none'">
+  <title>Few-shot exemplar selector</title>
+  <style>
+    :root { font: 16px/1.5 system-ui,-apple-system,Segoe UI,sans-serif; color-scheme:dark; --bg:#0b1220; --panel:#152235; --line:#34475e; --ink:#f3f6fc; --muted:#b7c5d7; --blue:#72b5ff; --error:#ff9f9f; }
+    * { box-sizing:border-box; }
+    body { background:var(--bg);color:var(--ink); margin:0;padding:0 1.1rem 3rem; }
+    main { max-width:1140px;margin:0 auto; }
+    header { padding:1.7rem 0 1rem;border-bottom:1px solid var(--line);margin-bottom:1.3rem; }
+    h1 { font-size:clamp(1.5rem,3vw,2.1rem);line-height:1.2;margin:0 0 .5rem; }
+    h2 { font-size:1.05rem;margin:0 0 1rem; }
+    p { margin:.4rem 0;color:var(--muted); }
+    .columns { display:grid; grid-template-columns:minmax(320px,1fr) minmax(320px,1fr);gap:1.1rem;align-items:start; }
+    .panel { background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:1.3rem;min-width:0; }
+    .two { display:grid;grid-template-columns:1fr 1fr;gap:.9rem; }
+    label { display:block;font-weight:600;font-size:.88rem;margin:.7rem 0 .35rem; }
+    input,textarea { display:block;width:100%;background:#0a1524;border:1px solid #52677f;color:var(--ink);border-radius:7px;padding:.65rem .75rem;font:inherit; }
+    textarea { resize:vertical;min-height:4.5rem; }
+    #pool { min-height:250px;font: .82rem/1.45 ui-monospace,SFMono-Regular,Consolas,monospace; }
+    input[type=range] { padding:.3rem 0; }
+    input[type=file] { font-size:.84rem; }
+    :focus-visible {outline:3px solid #9fd0ff;outline-offset:3px; }
+    button {border:1px solid #5299e9;background:#256fc1;color:#fff;border-radius:8px;font:600 .91rem system-ui;padding:.66rem 1rem;cursor:pointer;}
+    button:hover { background:#3886d9; }
+    button:disabled {opacity:.45;cursor:not-allowed;}
+    button.secondary {background:transparent;border-color:#69829f;}
+    button.secondary:hover {background:#273a53;}
+    .actions {display:flex;gap:.55rem;flex-wrap:wrap;margin-top:1rem;}
+    .helper {font-size:.8rem;}
+    .status {min-height:1.8rem;margin-top:.7rem;font-size:.88rem;}
+    .status.error {color:var(--error);}
+    .statrow {display:flex;gap:.7rem;flex-wrap:wrap;margin:0 0 .8rem;}
+    .stat {border:1px solid var(--line);padding:.35rem .7rem;border-radius:7px;font-size:.8rem;color:var(--muted);}
+    .stat strong {color:var(--ink);}
+    .result {border:1px solid var(--line);border-radius:9px;padding:.8rem;margin-top:.7rem;min-width:0;}
+    .result h3 {font-size:.94rem;margin:0 0 .35rem;overflow-wrap:anywhere;}
+    .result p {color:var(--ink);overflow-wrap:anywhere;white-space:pre-wrap;}
+    .meta {font-size:.78rem;color:var(--muted);overflow-wrap:anywhere;}
+    pre {white-space:pre-wrap;overflow-wrap:anywhere;background:#091321;border-radius:6px;padding:.6rem;font-size:.8rem;}
+    .empty {padding:1.5rem 0;color:var(--muted);}
+    footer {max-width:1140px;margin:1.3rem auto 0;font-size:.83rem;color:var(--muted);}
+    a {color:var(--blue);}
+    @media(max-width:780px){.columns {grid-template-columns:1fr;} .two {grid-template-columns:1fr 1fr;} .panel{padding:1rem;}}
+    @media(max-width:400px){.two {grid-template-columns:1fr;}}
+  </style>
+  <script src="./selector.js" defer></script>
+  <script src="./app.js" defer></script>
 </head>
 <body>
-
-    <div class="header">
-        <div class="header-title">
-            <h1>Few Shot Dynamic Exemplar Selector</h1>
-            <p>Domain: Clinical & Cryptographic AI | Standard: CAP / CLSI / NIST Standards | LabMind-Atlas Architecture</p>
-        </div>
-        <div>
-            <span class="badge">Air-Gapped Active</span>
-            <span class="badge" style="background: rgba(16,185,129,0.2); color: #10b981; border-color: #10b981;">Zero-PHI Guard Active</span>
-        </div>
-    </div>
-
-    <div class="metrics-bar">
-        <div class="metric-box">
-            <div class="metric-label">System Status</div>
-            <div class="metric-val" style="color: var(--success);" id="m-status">OPTIMAL</div>
-        </div>
-        <div class="metric-box">
-            <div class="metric-label">Tasks Processed</div>
-            <div class="metric-val" id="m-tasks">142</div>
-        </div>
-        <div class="metric-box">
-            <div class="metric-label">Audit Blocks Signed</div>
-            <div class="metric-val" id="m-audit">142</div>
-        </div>
-        <div class="metric-box">
-            <div class="metric-label">PHI Interceptions</div>
-            <div class="metric-val" style="color: var(--accent);" id="m-phi">0</div>
-        </div>
-    </div>
-
-    <div class="grid">
-        <div class="card">
-            <h2>⚙️ Dispatch Distributed Component Audit</h2>
-            <div class="form-group">
-                <label>Task / Sample ID</label>
-                <input type="text" id="task_id" value="TASK-2026-LIVE-01">
-            </div>
-            <div class="form-group">
-                <label>Target Identifier</label>
-                <input type="text" id="target_id" value="SPECIMEN-ALPHA-77">
-            </div>
-            <div class="form-group">
-                <label>Primary Measurement / Value</label>
-                <input type="number" id="primary_metric" value="29.4" step="0.1">
-            </div>
-            <div class="form-group">
-                <label>Secondary Metric / Kinetic Index</label>
-                <input type="number" id="secondary_metric" value="14.8" step="0.1">
-            </div>
-            <div class="form-group">
-                <label>Status / Phenotype Descriptor</label>
-                <input type="text" id="status_descriptor" value="DISCORDANT_ANOMALY">
-            </div>
-            <div class="form-group">
-                <label><input type="checkbox" id="is_critical" checked> Trigger Emergency / Critical Flag</label>
-            </div>
-            <button class="btn" onclick="runAudit()">Execute Distributed Component Audit</button>
-        </div>
-
-        <div class="card">
-            <h2>📊 Real-Time Consensus Dossier & Audit Log</h2>
-            <div class="terminal" id="outputConsole">// Few Shot Dynamic Exemplar Selector Operations Console Ready
-// Connection established with Air-Gapped Supervisor
-// Cryptographic HMAC-SHA256 audit ledger loaded.
-// Ready for live task payload dispatch...</div>
-        </div>
-    </div>
-
-    <script>
-        async function runAudit() {
-            const consoleEl = document.getElementById('outputConsole');
-            consoleEl.innerText = "// Dispatching task across specialized workers...
-// Invoking InvariantQCWorker, SafetyEscalationWorker, ProtocolWorker...";
-
-            const payload = {
-                task_id: document.getElementById('task_id').value,
-                target_identifier: document.getElementById('target_id').value,
-                primary_metric: parseFloat(document.getElementById('primary_metric').value),
-                secondary_metric: parseFloat(document.getElementById('secondary_metric').value),
-                status_descriptor: document.getElementById('status_descriptor').value,
-                is_critical_flag: document.getElementById('is_critical').checked
-            };
-
-            try {
-                const res = await fetch('/api/audit', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-                const data = await res.json();
-                consoleEl.innerText = JSON.stringify(data, null, 2);
-                document.getElementById('m-tasks').innerText = parseInt(document.getElementById('m-tasks').innerText) + 1;
-                document.getElementById('m-audit').innerText = parseInt(document.getElementById('m-audit').innerText) + 1;
-            } catch (err) {
-                consoleEl.innerText = "// Offline / Simulation Output:\n" + JSON.stringify({
-                    dossier_id: "DOSSIER-SIM-" + Math.floor(Math.random()*10000),
-                    system: "few-shot-dynamic-exemplar-selector",
-                    domain: "Clinical & Cryptographic AI",
-                    task_id: payload.task_id,
-                    overall_urgency: payload.is_critical_flag ? "CRITICAL_STAT_PANIC" : "ELEVATED_RISK",
-                    integrity_status: "DISCORDANT_ANOMALY",
-                    alerts: [
-                        { worker: "InvariantQCWorker", alert: "Primary metric exceeds upper reference bound" },
-                        { worker: "SafetyEscalationWorker", alert: "Critical emergency interlock flag active" }
-                    ],
-                    audit_hash: "HMAC_SHA256_e83f9a72b941d6c381f9"
-                }, null, 2);
-            }
-        }
-    </script>
+<main>
+  <header>
+    <h1>Few-shot exemplar selector</h1>
+    <p>Local TF-IDF retrieval with maximal marginal relevance (MMR). Select useful, nonredundant examples within an approximate prompt budget.</p>
+  </header>
+  <div class="columns">
+    <section class="panel" aria-labelledby="settings-title">
+      <h2 id="settings-title">Selection settings</h2>
+      <label for="query">Target query</label>
+      <textarea id="query" maxlength="10000" required spellcheck="false"></textarea>
+      <div class="two">
+        <div><label for="k">Maximum examples</label><input id="k" type="number" min="1" max="50" value="3"></div>
+        <div><label for="budget">Approx. token budget</label><input id="budget" type="number" min="1" max="100000" value="220" placeholder="Unlimited"></div>
+      </div>
+      <div class="two">
+        <div><label for="diversity">Relevance weight: <output id="weight">0.65</output></label><input id="diversity" type="range" min="0" max="1" step=".05" value=".65"></div>
+        <div><label for="domain">Domain (optional)</label><input id="domain" type="text" maxlength="100" placeholder="All domains"></div>
+      </div>
+      <label for="pool">Exemplar pool (JSON array)</label>
+      <textarea id="pool" spellcheck="false" aria-describedby="pool-help"></textarea>
+      <p class="helper" id="pool-help">Each object requires <code>id</code>, <code>input</code> and <code>output</code>; <code>domain</code> is optional. Maximum 1,000 examples.</p>
+      <label for="upload">Or import local JSON</label>
+      <input type="file" id="upload" accept=".json,application/json">
+      <div class="actions">
+        <button type="button" id="run">Select exemplars</button>
+        <button type="button" id="sample" class="secondary">Load sample</button>
+      </div>
+      <div id="status" class="status" role="status" aria-live="polite"></div>
+    </section>
+    <section class="panel" aria-labelledby="results-title">
+      <h2 id="results-title">Selected examples</h2>
+      <div id="stats" class="statrow" aria-live="polite"></div>
+      <div class="actions">
+        <button type="button" id="export" class="secondary" disabled>Download JSON</button>
+        <button type="button" id="prompt" class="secondary" disabled>Download prompt</button>
+      </div>
+      <div id="results"><p class="empty">Run a selection to inspect relevance and redundancy scores.</p></div>
+    </section>
+  </div>
+</main>
+<footer>
+  <p>Processing stays in your browser; no model or external API is called. TF-IDF uses lexical overlap, not embeddings. Token estimates use character counts ÷ 4 and will differ from model tokenizers. Do not treat example selection as clinical validation.</p>
+  <p><a href="https://github.com/abusuraihsakhri/few-shot-dynamic-exemplar-selector" rel="noopener noreferrer">Source repository</a></p>
+</footer>
 </body>
 </html>

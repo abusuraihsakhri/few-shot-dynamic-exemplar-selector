@@ -7,13 +7,36 @@ import json
 import sys
 from .models import FrontierPayload
 from .agents import ExemplarCoordinator
+from .selection import select_exemplars
+from pathlib import Path
 
 coordinator = ExemplarCoordinator()
+
+
+
+def parse_csv_bool(value):
+    """Interpret explicit CSV boolean values; reject ambiguous input."""
+    if isinstance(value, bool):
+        return value
+    normalized = str(value).strip().lower()
+    if normalized in ("true", "1", "yes", "y"):
+        return True
+    if normalized in ("false", "0", "no", "n", ""):
+        return False
+    raise ValueError(f"Invalid is_critical_flag boolean: {value!r}")
 
 
 def main(argv=None):
     parser = argparse.ArgumentParser(prog="few-shot-dynamic-exemplar-selector", description="ExemplarSelector: Semantic Distance & Diversity Few-Shot Prompt Builder")
     subparsers = parser.add_subparsers(dest="command", required=True)
+
+    p_select = subparsers.add_parser("select", help="Choose few-shot examples using lexical TF-IDF + MMR")
+    p_select.add_argument("--query", required=True, help="Query to match")
+    p_select.add_argument("--pool", required=True, help="JSON file containing an array of exemplar objects")
+    p_select.add_argument("-k", type=int, default=3, help="Maximum number of examples (1-50)")
+    p_select.add_argument("--diversity", type=float, default=0.65, help="MMR query relevance weight (0-1)")
+    p_select.add_argument("--token-budget", type=int, default=None, help="Approximate character-based budget")
+    p_select.add_argument("--domain", default=None, help="Optional exact domain filter")
 
     # Audit
     p_audit = subparsers.add_parser("audit", help="Run single task evaluation")
@@ -39,6 +62,22 @@ def main(argv=None):
     p_serve.add_argument("--port", type=int, default=8000)
 
     args = parser.parse_args(argv)
+
+    if args.command == "select":
+        try:
+            pool = Path(args.pool)
+            if pool.stat().st_size > 2_000_000:
+                raise ValueError("pool JSON file is too large (maximum 2 MB)")
+            exemplars = json.loads(pool.read_text(encoding="utf-8"))
+            result = select_exemplars(
+                args.query, exemplars, k=args.k, diversity=args.diversity,
+                token_budget=args.token_budget, domain=args.domain
+            )
+        except (OSError, ValueError, TypeError, json.JSONDecodeError) as exc:
+            print(f"Selection error: {exc}", file=sys.stderr)
+            return 2
+        print(json.dumps(result, ensure_ascii=False, indent=2))
+        return 0
 
     if args.command == "audit":
         payload = FrontierPayload(
@@ -83,7 +122,7 @@ def main(argv=None):
                 primary_metric=float(r.get("primary_metric", 15.0)),
                 secondary_metric=float(r.get("secondary_metric", 5.0)),
                 status_descriptor=r.get("status_descriptor", "NOMINAL"),
-                is_critical_flag=bool(r.get("is_critical_flag", False)),
+                is_critical_flag=parse_csv_bool(r.get("is_critical_flag", False)),
             )
             dossier = coordinator.process(payload)
             row_dict = dict(r)

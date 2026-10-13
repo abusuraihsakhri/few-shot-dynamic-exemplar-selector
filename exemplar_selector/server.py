@@ -1,17 +1,18 @@
 """
 FastAPI REST API Server for ExemplarSelector: Semantic Distance & Diversity Few-Shot Prompt Builder.
 """
-from typing import Dict, Any
+from typing import Dict, Any, List, Optional
 from .models import FrontierPayload
 from .agents import ExemplarCoordinator
+from .selection import select_exemplars
 
 coordinator = ExemplarCoordinator()
 
 
 def create_app():
     try:
-        from fastapi import FastAPI
-        from pydantic import BaseModel
+        from fastapi import FastAPI, HTTPException
+        from pydantic import BaseModel, Field
 
         app = FastAPI(
             title="ExemplarSelector: Semantic Distance & Diversity Few-Shot Prompt Builder",
@@ -28,8 +29,24 @@ def create_app():
             is_critical_flag: bool = True
             attributes: Dict[str, Any] = {}
 
+        class SelectRequest(BaseModel):
+            query: str = Field(..., min_length=1, max_length=10000)
+            exemplars: List[Dict[str, Any]] = Field(..., max_length=1000)
+            k: int = Field(default=3, ge=1, le=50)
+            diversity: float = Field(default=0.65, ge=0, le=1, allow_inf_nan=False)
+            token_budget: Optional[int] = Field(default=None, ge=1, le=100000)
+            domain: Optional[str] = Field(default=None, max_length=100)
+
         class ChatRequest(BaseModel):
             query: str
+
+        @app.post("/api/select")
+        def api_select(req: SelectRequest):
+            try:
+                return select_exemplars(req.query, req.exemplars, k=req.k, diversity=req.diversity,
+                                        token_budget=req.token_budget, domain=req.domain)
+            except ValueError as exc:
+                raise HTTPException(status_code=422, detail=str(exc)) from exc
 
         @app.get("/health")
         def health():
