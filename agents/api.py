@@ -82,6 +82,10 @@ def web_console():
 def web_selector_script():
     return FileResponse(_WEB_DIR / "selector.js", media_type="text/javascript")
 
+@app.get("/app.js", include_in_schema=False)
+def web_application_script():
+    return FileResponse(_WEB_DIR / "app.js", media_type="text/javascript")
+
 
 @app.post("/api/select")
 def api_select(req: SelectRequest):
