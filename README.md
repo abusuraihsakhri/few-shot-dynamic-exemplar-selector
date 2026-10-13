@@ -1,5 +1,7 @@
 # Few-shot Dynamic Exemplar Selector
 
+### [Open the Live Application →](https://abusuraihsakhri.github.io/few-shot-dynamic-exemplar-selector/)
+
 Select examples for in-context prompts using local, deterministic **TF-IDF cosine similarity** and **maximal marginal relevance (MMR)**. An optional domain filter, maximum-example count and approximate token budget constrain selection. The implementation requires no embeddings API, hosted model or account.
 
 ## Main features
