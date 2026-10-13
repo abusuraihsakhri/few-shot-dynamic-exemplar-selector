@@ -1,40 +1,53 @@
-name: Few Shot Dynamic Exemplar Selector CI/CD & Security Verification
+name: Tests and security checks
 
 on:
   push:
-    branches: [ master, main ]
+    branches: [master, main, "audit/**"]
   pull_request:
-    branches: [ master, main ]
+    branches: [master, main]
+
+permissions:
+  contents: read
 
 jobs:
-  test-and-audit:
+  test:
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         python-version: ["3.10", "3.11", "3.12"]
-
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+          cache-dependency-path: pyproject.toml
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Install project and test tools
+        run: python -m pip install -e ".[api,test]" build
+      - name: Test Python package
+        run: python -m pytest -q
+      - name: Check distributable
+        run: python -m build --wheel --sdist
+      - name: Test browser code
+        run: |
+          node --check web/selector.js
+          node --check web/app.js
+          node --test web/test_selector.cjs
+      - name: Verify Python syntax
+        run: python -m compileall -q agents exemplar_selector cli.py enrichment.py simulator.py
 
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v5
-      with:
-        python-version: ${{ matrix.python-version }}
-
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install fastapi uvicorn pydantic pytest
-
-    - name: Run Pytest Suite
-      run: |
-        pytest -v
-
-    - name: Security SAST & Zero-PHI Audit
-      run: |
-        python -c "
-        from agents.base import PHIGuard, AuditLogger
-        import pytest
-        assert AuditLogger.verify_integrity() is True
-        print('Security & Zero-PHI Audit Passed!')
-        "
+  dependency-audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install dependencies and auditor
+        run: python -m pip install -e ".[api,test]" pip-audit
+      - name: Scan installed Python dependencies
+        run: pip-audit --strict
